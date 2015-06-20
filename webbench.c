@@ -373,7 +373,7 @@ static int bench(void)
 	  while(1)
 	  {
 		  pid=fscanf(f,"%d %d %d",&i,&j,&k);
-		  if(pid<2)
+		  if(pid<3)
                   {
                        fprintf(stderr,"Some of our childrens died.\n");
                        break;

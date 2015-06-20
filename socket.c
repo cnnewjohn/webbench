@@ -52,7 +52,10 @@ int Socket(const char *host, int clientPort)
     if (sock < 0)
         return sock;
     if (connect(sock, (struct sockaddr *)&ad, sizeof(ad)) < 0)
+      {
+        close(sock);
         return -1;
+      }  
     return sock;
 }
 
