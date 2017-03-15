@@ -79,7 +79,7 @@ static void alarm_handler(int signal)
    timerexpired=1;
 }	
 
-static void usage(void)
+static void usage(void)//向屏幕打印出提示信息
 {
    fprintf(stderr,
 	"webbench [option]... URL\n"
@@ -99,16 +99,17 @@ static void usage(void)
 	"  -V|--version             Display program version.\n"
 	);
 };
-int main(int argc, char *argv[])
+
+int main(int argc, char *argv[])//主函数
 {
  int opt=0;
  int options_index=0;
  char *tmp=NULL;
 
- if(argc==1)
+ if(argc==1)//argc纪录了用户在运行程序命令中输入的参数的个数 输入参数argc==1
  {
-	  usage();
-          return 2;
+	  usage();//向屏幕打印出提示信息
+          return 2;//返回为2 参数错误·
  } 
 
  while((opt=getopt_long(argc,argv,"912Vfrt:p:c:?h",long_options,&options_index))!=EOF )
@@ -212,26 +213,34 @@ void build_request(const char *url)
   switch(method)
   {
 	  default:
-	  case METHOD_GET: strcpy(request,"GET");break;
+	  case METHOD_GET: strcpy(request,"GET");break;//复制操作 
 	  case METHOD_HEAD: strcpy(request,"HEAD");break;
 	  case METHOD_OPTIONS: strcpy(request,"OPTIONS");break;
 	  case METHOD_TRACE: strcpy(request,"TRACE");break;
   }
 		  
-  strcat(request," ");
-
+  strcat(request," ");//连接	
   if(NULL==strstr(url,"://"))
   {
-	  fprintf(stderr, "\n%s: is not a valid URL.\n",url);
+	  fprintf(stderr, "\n%s: is not a valid URL.\n",url);//地址中没有"://"	
+
 	  exit(2);
   }
-  if(strlen(url)>1500)
+  if(strlen(url)>1500)//地址太长
   {
          fprintf(stderr,"URL is too long.\n");
 	 exit(2);
   }
   if(proxyhost==NULL)
-	   if (0!=strncasecmp("http://",url,7)) 
+	  /*
+	  int strncasecmp(const char *s1,const char *s2,size_t n)
+	  
+	  用来比较参数s1 s2字符串前n个字符，比较时自动忽略大小写	
+	  1、相等 返回9；
+	  2、s1>s2 返回>0
+	  3、s1<s2 返回<0	
+         */
+	   if (0!=strncasecmp("http://",url,7)) 	   
 	   { fprintf(stderr,"\nOnly HTTP protocol is directly supported, set --proxy for others.\n");
              exit(2);
            }
@@ -239,7 +248,7 @@ void build_request(const char *url)
   i=strstr(url,"://")-url+3;
   /* printf("%d\n",i); */
 
-  if(strchr(url+i,'/')==NULL) {
+  if(strchr(url+i,'/')==NULL) {//地址不是以'/'结尾
                                 fprintf(stderr,"\nInvalid URL syntax - hostname don't ends with '/'.\n");
                                 exit(2);
                               }
