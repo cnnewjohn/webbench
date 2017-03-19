@@ -236,11 +236,11 @@ void build_request(const char *url)
 	  int strncasecmp(const char *s1,const char *s2,size_t n)
 	  
 	  用来比较参数s1 s2字符串前n个字符，比较时自动忽略大小写	
-	  1、相等 返回9；
+	  1、相等 返回0；
 	  2、s1>s2 返回>0
 	  3、s1<s2 返回<0	
          */
-	   if (0!=strncasecmp("http://",url,7)) 	   
+	   if (0!=strncasecmp("http://",url,7)) //地址不是以 http://开头	   
 	   { fprintf(stderr,"\nOnly HTTP protocol is directly supported, set --proxy for others.\n");
              exit(2);
            }
