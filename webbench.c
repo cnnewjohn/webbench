@@ -125,9 +125,9 @@ int main(int argc, char *argv[])//主函数
    case 'V': printf(PROGRAM_VERSION"\n");exit(0);
    case 't': benchtime=atoi(optarg);break;	     
    case 'p': 
-	     /* proxy server parsing server:port */
-	     tmp=strrchr(optarg,':');
-	     proxyhost=optarg;
+	     /* proxy server parsing server:port */   //代理服务器解析服务器：端口	
+             tmp=strrchr(optarg,':');// 在optarg所指的字符串中 找到最后出现':'的位置，若找不到 则返回为NULL	
+             proxyhost=optarg;
 	     if(tmp==NULL)
 	     {
 		     break;
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])//主函数
 		     return 2;
 	     }
 	     *tmp='\0';
-	     proxyport=atoi(tmp+1);break;
+	     proxyport=atoi(tmp+1);break;//int atio(const char *str)  将字符串抓换成整数形式 
    case ':':
    case 'h':
    case '?': usage();return 2;break;
@@ -257,8 +257,19 @@ void build_request(const char *url)
    /* get port from hostname */
    if(index(url+i,':')!=NULL &&
       index(url+i,':')<index(url+i,'/'))
+	   /*
+	   定义函数：char * index(const char *s, int c);
+           函数说明：index()用来找出参数s 字符串中第一个出现的参数c 地址，
+	   然后将该字符出现的地址返回。字符串结束字符(NULL)也视为字符串一部分。
+	   */
    {
 	   strncpy(host,url+i,strchr(url+i,':')-url-i);
+	   /*
+       strncpy()用来复制字符串的前n个字符，其原型为：
+       char * strncpy(char *dest, const char *src, size_t n);
+      【参数说明】dest 为目标字符串指针，src 为源字符串指针。
+       strncpy()会将字符串src前n个字符拷贝到字符串dest。
+	   */
 	   bzero(tmp,10);
 	   strncpy(tmp,index(url+i,':')+1,strchr(url+i,'/')-index(url+i,':')-1);
 	   /* printf("tmp=%s\n",tmp); */
@@ -266,7 +277,11 @@ void build_request(const char *url)
 	   if(proxyport==0) proxyport=80;
    } else
    {
-     strncpy(host,url+i,strcspn(url+i,"/"));
+     strncpy(host,url+i,strcspn(url+i,"/"));//strcspn size_t strcspn(const char *s, const char *reject);
+
+         //该函数对字符串reject中的每个字符在s中查找，
+	 //是否存在，如果有超过一个以上的字符在s中存在，
+	 //那么返回这些字符位置(在s中的位置)中最小的一个。
    }
    // printf("Host=%s\n",host);
    strcat(request+strlen(request),url+i+strcspn(url+i,"/"));
@@ -306,7 +321,7 @@ static int bench(void)
   pid_t pid=0;
   FILE *f;
 
-  /* check avaibility of target server */
+  /* check avaibility of target server */ //检查目标服务器的可用性
   i=Socket(proxyhost==NULL?host:proxyhost,proxyport);
   if(i<0) { 
 	   fprintf(stderr,"\nConnect to server failed. Aborting benchmark.\n");
