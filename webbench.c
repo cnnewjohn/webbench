@@ -329,7 +329,9 @@ static int bench(void)
          }
   close(i);
   /* create pipe */
-  if(pipe(mypipe))
+  if(pipe(mypipe)) //int pipe(int filedses[2]) 创建两个进程互相通信的管道 
+  //参数数组包含pipe使用的两个文件描述符 fd[0]读 管道 fd[1]写管道
+  // 成功返回0 否则返回-1
   {
 	  perror("pipe failed.");
 	  return 3;
@@ -347,25 +349,25 @@ static int bench(void)
   for(i=0;i<clients;i++)
   {
 	   pid=fork();
-	   if(pid <= (pid_t) 0)
-	   {
+	   if(pid <= (pid_t) 0) //pid=0 当前进程为子进程 pid<0 创建进程失败  直接跳出for循环	
+   {
 		   /* child process or error*/
 	           sleep(1); /* make childs faster */
 		   break;
 	   }
   }
 
-  if( pid< (pid_t) 0)
+  if( pid< (pid_t) 0)  //创建进程出错 打印出错信息并结束函数
   {
           fprintf(stderr,"problems forking worker no. %d\n",i);
 	  perror("fork failed.");
 	  return 3;
   }
 
-  if(pid== (pid_t) 0)
+  if(pid== (pid_t) 0) //当前进程是子进程
   {
     /* I am a child */
-    if(proxyhost==NULL)
+    if(proxyhost==NULL)  //若代理服务器端口为空
       benchcore(host,proxyport,request);
          else
       benchcore(proxyhost,proxyport,request);
