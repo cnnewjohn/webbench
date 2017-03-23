@@ -373,19 +373,19 @@ static int bench(void)
       benchcore(proxyhost,proxyport,request);
 
          /* write results to pipe */
-	 f=fdopen(mypipe[1],"w");
+	 f=fdopen(mypipe[1],"w");//将结果写入管道 
 	 if(f==NULL)
 	 {
 		 perror("open pipe for writing failed.");
 		 return 3;
 	 }
 	 /* fprintf(stderr,"Child - %d %d\n",speed,failed); */
-	 fprintf(f,"%d %d %d\n",speed,failed,bytes);
+	 fprintf(f,"%d %d %d\n",speed,failed,bytes);//把	每个子进程运行的结果放入管道
 	 fclose(f);
 	 return 0;
-  } else
+  } else    //当前进程是父进程
   {
-	  f=fdopen(mypipe[0],"r");
+	  f=fdopen(mypipe[0],"r");  
 	  if(f==NULL) 
 	  {
 		  perror("open pipe for reading failed.");
@@ -396,7 +396,7 @@ static int bench(void)
           failed=0;
           bytes=0;
 
-	  while(1)
+	  while(1)//父进程读取管道数据，并做加法 
 	  {
 		  pid=fscanf(f,"%d %d %d",&i,&j,&k);
 		  if(pid<2)
@@ -429,7 +429,7 @@ void benchcore(const char *host,const int port,const char *req)
  struct sigaction sa;
 
  /* setup alarm signal handler */
- sa.sa_handler=alarm_handler;
+ sa.sa_handler=alarm_handler;//定时器方法
  sa.sa_flags=0;
  if(sigaction(SIGALRM,&sa,NULL))
     exit(3);
@@ -438,7 +438,7 @@ void benchcore(const char *host,const int port,const char *req)
  rlen=strlen(req);
  nexttry:while(1)
  {
-    if(timerexpired)
+    if(timerexpired)   //定时器到时后，会设定timerexpired=1，函数就会返回  
     {
        if(failed>0)
        {
@@ -447,14 +447,38 @@ void benchcore(const char *host,const int port,const char *req)
        }
        return;
     }
-    s=Socket(host,port);                          
-    if(s<0) { failed++;continue;} 
-    if(rlen!=write(s,req,rlen)) {failed++;close(s);continue;}
-    if(http10==0) 
-	    if(shutdown(s,1)) { failed++;close(s);continue;}
+    s=Socket(host,port);       //创建连接                   
+    if(s<0) { failed++;continue;}  //连接失败 纪录失败的计数器加1
+    /*
+    定义函数：ssize_t write (int fd, const void * buf, size_t count);
+    函数说明：write()会把参数buf 所指的内存写入count 个字节到参数fd 所指的文件内. 
+    当然, 文件读写位置也会随之移动
+    返回值：如果顺利write()会返回实际写入的字节数. 
+    当有错误发生时则返回-1, 错误代码存入errno 中.
+    */
+    if(rlen!=write(s,req,rlen)) {failed++;close(s);continue;}  
+    /*
+    定义函数：int close(int fd);
+    函数说明：当使用完文件后若已不再需要则可使用 close()关闭该文件, 
+    close()会让数据写回磁盘, 并释放该文件所占用的资源.
+    参数fd 为先前由open()或creat()所返回的文件描述词.
+    返回值：若文件顺利关闭则返回0, 发生错误时返回-1.
+    */
+    if(http10==0)
+    /*
+   定义函数：int shutdown(int s, int how);
+
+   函数说明：shutdown()用来终止参数s 所指定的socket 连线. 参数s 是连线中的socket 处理代码, 参数how有下列几种情况:
+   how=0 终止读取操作.
+   how=1 终止传送操作
+   how=2 终止读取及传送操作
+
+   返回值：成功则返回0, 失败返回-1, 错误原因存于errno
+    */
+	    if(shutdown(s,1)) { failed++;close(s);continue;}//终止s所指定的socket连接传送操作失败 连接失败计数器+1
     if(force==0) 
     {
-            /* read all available data from socket */
+            /*读取套接字所有可用的数据*/ 
 	    while(1)
 	    {
               if(timerexpired) break; 
