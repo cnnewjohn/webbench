@@ -481,8 +481,8 @@ void benchcore(const char *host,const int port,const char *req)
             /*读取套接字所有可用的数据*/ 
 	    while(1)
 	    {
-              if(timerexpired) break; 
-	      i=read(s,buf,1500);
+              if(timerexpired) break;  //定时器到时后，会设定timerexpired=1，函数就会返回  
+	      i=read(s,buf,1500);//从s所指向的文件描述符里读取1500个字节到buf所指向的内存空间中去
               /* fprintf(stderr,"%d\n",i); */
 	      if(i<0) 
               { 
@@ -496,7 +496,7 @@ void benchcore(const char *host,const int port,const char *req)
 			       bytes+=i;
 	    }
     }
-    if(close(s)) {failed++;continue;}
+    if(close(s)) {failed++;continue;}//关闭s所指向的连接失败，失败次数 加1
     speed++;
  }
 }
