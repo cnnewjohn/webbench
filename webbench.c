@@ -79,7 +79,7 @@ static void alarm_handler(int signal)
    timerexpired=1;
 }	
 
-static void usage(void)
+static void usage(void)//向屏幕打印出提示信息
 {
    fprintf(stderr,
 	"webbench [option]... URL\n"
@@ -99,16 +99,17 @@ static void usage(void)
 	"  -V|--version             Display program version.\n"
 	);
 };
-int main(int argc, char *argv[])
+
+int main(int argc, char *argv[])//主函数
 {
  int opt=0;
  int options_index=0;
  char *tmp=NULL;
 
- if(argc==1)
+ if(argc==1)//argc纪录了用户在运行程序命令中输入的参数的个数 输入参数argc==1
  {
-	  usage();
-          return 2;
+	  usage();//向屏幕打印出提示信息
+          return 2;//返回为2 参数错误·
  } 
 
  while((opt=getopt_long(argc,argv,"912Vfrt:p:c:?h",long_options,&options_index))!=EOF )
@@ -124,9 +125,9 @@ int main(int argc, char *argv[])
    case 'V': printf(PROGRAM_VERSION"\n");exit(0);
    case 't': benchtime=atoi(optarg);break;	     
    case 'p': 
-	     /* proxy server parsing server:port */
-	     tmp=strrchr(optarg,':');
-	     proxyhost=optarg;
+	     /* proxy server parsing server:port */   //代理服务器解析服务器：端口	
+             tmp=strrchr(optarg,':');// 在optarg所指的字符串中 找到最后出现':'的位置，若找不到 则返回为NULL	
+             proxyhost=optarg;
 	     if(tmp==NULL)
 	     {
 		     break;
@@ -142,7 +143,7 @@ int main(int argc, char *argv[])
 		     return 2;
 	     }
 	     *tmp='\0';
-	     proxyport=atoi(tmp+1);break;
+	     proxyport=atoi(tmp+1);break;//int atio(const char *str)  将字符串抓换成整数形式 
    case ':':
    case 'h':
    case '?': usage();return 2;break;
@@ -212,26 +213,34 @@ void build_request(const char *url)
   switch(method)
   {
 	  default:
-	  case METHOD_GET: strcpy(request,"GET");break;
+	  case METHOD_GET: strcpy(request,"GET");break;//复制操作 
 	  case METHOD_HEAD: strcpy(request,"HEAD");break;
 	  case METHOD_OPTIONS: strcpy(request,"OPTIONS");break;
 	  case METHOD_TRACE: strcpy(request,"TRACE");break;
   }
 		  
-  strcat(request," ");
-
+  strcat(request," ");//连接	
   if(NULL==strstr(url,"://"))
   {
-	  fprintf(stderr, "\n%s: is not a valid URL.\n",url);
+	  fprintf(stderr, "\n%s: is not a valid URL.\n",url);//地址中没有"://"	
+
 	  exit(2);
   }
-  if(strlen(url)>1500)
+  if(strlen(url)>1500)//地址太长
   {
          fprintf(stderr,"URL is too long.\n");
 	 exit(2);
   }
   if(proxyhost==NULL)
-	   if (0!=strncasecmp("http://",url,7)) 
+	  /*
+	  int strncasecmp(const char *s1,const char *s2,size_t n)
+	  
+	  用来比较参数s1 s2字符串前n个字符，比较时自动忽略大小写	
+	  1、相等 返回0；
+	  2、s1>s2 返回>0
+	  3、s1<s2 返回<0	
+         */
+	   if (0!=strncasecmp("http://",url,7)) //地址不是以 http://开头	   
 	   { fprintf(stderr,"\nOnly HTTP protocol is directly supported, set --proxy for others.\n");
              exit(2);
            }
@@ -239,7 +248,7 @@ void build_request(const char *url)
   i=strstr(url,"://")-url+3;
   /* printf("%d\n",i); */
 
-  if(strchr(url+i,'/')==NULL) {
+  if(strchr(url+i,'/')==NULL) {//地址不是以'/'结尾
                                 fprintf(stderr,"\nInvalid URL syntax - hostname don't ends with '/'.\n");
                                 exit(2);
                               }
@@ -248,8 +257,19 @@ void build_request(const char *url)
    /* get port from hostname */
    if(index(url+i,':')!=NULL &&
       index(url+i,':')<index(url+i,'/'))
+	   /*
+	   定义函数：char * index(const char *s, int c);
+           函数说明：index()用来找出参数s 字符串中第一个出现的参数c 地址，
+	   然后将该字符出现的地址返回。字符串结束字符(NULL)也视为字符串一部分。
+	   */
    {
 	   strncpy(host,url+i,strchr(url+i,':')-url-i);
+	   /*
+       strncpy()用来复制字符串的前n个字符，其原型为：
+       char * strncpy(char *dest, const char *src, size_t n);
+      【参数说明】dest 为目标字符串指针，src 为源字符串指针。
+       strncpy()会将字符串src前n个字符拷贝到字符串dest。
+	   */
 	   bzero(tmp,10);
 	   strncpy(tmp,index(url+i,':')+1,strchr(url+i,'/')-index(url+i,':')-1);
 	   /* printf("tmp=%s\n",tmp); */
@@ -257,7 +277,11 @@ void build_request(const char *url)
 	   if(proxyport==0) proxyport=80;
    } else
    {
-     strncpy(host,url+i,strcspn(url+i,"/"));
+     strncpy(host,url+i,strcspn(url+i,"/"));//strcspn size_t strcspn(const char *s, const char *reject);
+
+         //该函数对字符串reject中的每个字符在s中查找，
+	 //是否存在，如果有超过一个以上的字符在s中存在，
+	 //那么返回这些字符位置(在s中的位置)中最小的一个。
    }
    // printf("Host=%s\n",host);
    strcat(request+strlen(request),url+i+strcspn(url+i,"/"));
@@ -297,7 +321,7 @@ static int bench(void)
   pid_t pid=0;
   FILE *f;
 
-  /* check avaibility of target server */
+  /* check avaibility of target server */ //检查目标服务器的可用性
   i=Socket(proxyhost==NULL?host:proxyhost,proxyport);
   if(i<0) { 
 	   fprintf(stderr,"\nConnect to server failed. Aborting benchmark.\n");
@@ -305,7 +329,9 @@ static int bench(void)
          }
   close(i);
   /* create pipe */
-  if(pipe(mypipe))
+  if(pipe(mypipe)) //int pipe(int filedses[2]) 创建两个进程互相通信的管道 
+  //参数数组包含pipe使用的两个文件描述符 fd[0]读 管道 fd[1]写管道
+  // 成功返回0 否则返回-1
   {
 	  perror("pipe failed.");
 	  return 3;
@@ -323,43 +349,43 @@ static int bench(void)
   for(i=0;i<clients;i++)
   {
 	   pid=fork();
-	   if(pid <= (pid_t) 0)
-	   {
+	   if(pid <= (pid_t) 0) //pid=0 当前进程为子进程 pid<0 创建进程失败  直接跳出for循环	
+   {
 		   /* child process or error*/
 	           sleep(1); /* make childs faster */
 		   break;
 	   }
   }
 
-  if( pid< (pid_t) 0)
+  if( pid< (pid_t) 0)  //创建进程出错 打印出错信息并结束函数
   {
           fprintf(stderr,"problems forking worker no. %d\n",i);
 	  perror("fork failed.");
 	  return 3;
   }
 
-  if(pid== (pid_t) 0)
+  if(pid== (pid_t) 0) //当前进程是子进程
   {
     /* I am a child */
-    if(proxyhost==NULL)
+    if(proxyhost==NULL)  //若代理服务器端口为空
       benchcore(host,proxyport,request);
          else
       benchcore(proxyhost,proxyport,request);
 
          /* write results to pipe */
-	 f=fdopen(mypipe[1],"w");
+	 f=fdopen(mypipe[1],"w");//将结果写入管道 
 	 if(f==NULL)
 	 {
 		 perror("open pipe for writing failed.");
 		 return 3;
 	 }
 	 /* fprintf(stderr,"Child - %d %d\n",speed,failed); */
-	 fprintf(f,"%d %d %d\n",speed,failed,bytes);
+	 fprintf(f,"%d %d %d\n",speed,failed,bytes);//把	每个子进程运行的结果放入管道
 	 fclose(f);
 	 return 0;
-  } else
+  } else    //当前进程是父进程
   {
-	  f=fdopen(mypipe[0],"r");
+	  f=fdopen(mypipe[0],"r");  
 	  if(f==NULL) 
 	  {
 		  perror("open pipe for reading failed.");
@@ -370,7 +396,7 @@ static int bench(void)
           failed=0;
           bytes=0;
 
-	  while(1)
+	  while(1)//父进程读取管道数据，并做加法 
 	  {
 		  pid=fscanf(f,"%d %d %d",&i,&j,&k);
 		  if(pid<2)
@@ -403,7 +429,7 @@ void benchcore(const char *host,const int port,const char *req)
  struct sigaction sa;
 
  /* setup alarm signal handler */
- sa.sa_handler=alarm_handler;
+ sa.sa_handler=alarm_handler;//定时器方法
  sa.sa_flags=0;
  if(sigaction(SIGALRM,&sa,NULL))
     exit(3);
@@ -412,7 +438,7 @@ void benchcore(const char *host,const int port,const char *req)
  rlen=strlen(req);
  nexttry:while(1)
  {
-    if(timerexpired)
+    if(timerexpired)   //定时器到时后，会设定timerexpired=1，函数就会返回  
     {
        if(failed>0)
        {
@@ -421,18 +447,42 @@ void benchcore(const char *host,const int port,const char *req)
        }
        return;
     }
-    s=Socket(host,port);                          
-    if(s<0) { failed++;continue;} 
-    if(rlen!=write(s,req,rlen)) {failed++;close(s);continue;}
-    if(http10==0) 
-	    if(shutdown(s,1)) { failed++;close(s);continue;}
+    s=Socket(host,port);       //创建连接                   
+    if(s<0) { failed++;continue;}  //连接失败 纪录失败的计数器加1
+    /*
+    定义函数：ssize_t write (int fd, const void * buf, size_t count);
+    函数说明：write()会把参数buf 所指的内存写入count 个字节到参数fd 所指的文件内. 
+    当然, 文件读写位置也会随之移动
+    返回值：如果顺利write()会返回实际写入的字节数. 
+    当有错误发生时则返回-1, 错误代码存入errno 中.
+    */
+    if(rlen!=write(s,req,rlen)) {failed++;close(s);continue;}  
+    /*
+    定义函数：int close(int fd);
+    函数说明：当使用完文件后若已不再需要则可使用 close()关闭该文件, 
+    close()会让数据写回磁盘, 并释放该文件所占用的资源.
+    参数fd 为先前由open()或creat()所返回的文件描述词.
+    返回值：若文件顺利关闭则返回0, 发生错误时返回-1.
+    */
+    if(http10==0)
+    /*
+   定义函数：int shutdown(int s, int how);
+
+   函数说明：shutdown()用来终止参数s 所指定的socket 连线. 参数s 是连线中的socket 处理代码, 参数how有下列几种情况:
+   how=0 终止读取操作.
+   how=1 终止传送操作
+   how=2 终止读取及传送操作
+
+   返回值：成功则返回0, 失败返回-1, 错误原因存于errno
+    */
+	    if(shutdown(s,1)) { failed++;close(s);continue;}//终止s所指定的socket连接传送操作失败 连接失败计数器+1
     if(force==0) 
     {
-            /* read all available data from socket */
+            /*读取套接字所有可用的数据*/ 
 	    while(1)
 	    {
-              if(timerexpired) break; 
-	      i=read(s,buf,1500);
+              if(timerexpired) break;  //定时器到时后，会设定timerexpired=1，函数就会返回  
+	      i=read(s,buf,1500);//从s所指向的文件描述符里读取1500个字节到buf所指向的内存空间中去
               /* fprintf(stderr,"%d\n",i); */
 	      if(i<0) 
               { 
@@ -446,7 +496,7 @@ void benchcore(const char *host,const int port,const char *req)
 			       bytes+=i;
 	    }
     }
-    if(close(s)) {failed++;continue;}
+    if(close(s)) {failed++;continue;}//关闭s所指向的连接失败，失败次数 加1
     speed++;
  }
 }
